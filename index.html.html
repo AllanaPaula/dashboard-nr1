@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard BI · Riscos Psicossociais · NR-1</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0e14;
+  --bg2: #13151e;
+  --bg3: #1a1d2a;
+  --bg4: #21253a;
+  --border: #2a2f45;
+  --border2: #353c58;
+  --text: #e8eaf2;
+  --text2: #9198b8;
+  --text3: #5c6485;
+  --accent: #4f7fff;
+  --accent2: #7c9fff;
+  --teal: #2dd4bf;
+  --green: #22c55e;
+  --yellow: #f59e0b;
+  --orange: #f97316;
+  --red: #ef4444;
+  --red2: #dc2626;
+  --purple: #a855f7;
+  --low:    #22c55e;
+  --medium: #f59e0b;
+  --high:   #f97316;
+  --critical:#ef4444;
+  --nav-w: 220px;
+  --header-h: 56px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body { 
+  font-family: 'DM Sans', sans-serif; 
+  background: var(--bg); 
+  color: var(--text);
+  display: flex; 
+  height: 100vh; 
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--nav-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.2;
+}
+.sidebar-logo .sub {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.sidebar-section-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  padding: 18px 18px 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  border-radius: 0;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all .15s;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { 
+  background: var(--bg3); 
+  color: var(--accent2); 
+  border-left-color: var(--accent);
+}
+.nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.5;
+}
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.topbar {
+  height: var(--header-h);
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+}
+.topbar-badge {
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: var(--text2);
+  font-family: 'DM Mono', monospace;
+}
+.topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.filter-select {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  outline: none;
+}
+.filter-select option { background: var(--bg3); }
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+}
+.content::-webkit-scrollbar { width: 6px; }
+.content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── PAGES ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── KPI GRID ── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.kpi-card:hover { border-color: var(--border2); }
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 10px 10px 0 0;
+}
+.kpi-card.blue::before  { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.kpi-card.teal::before  { background: linear-gradient(90deg, var(--teal), #5eead4); }
+.kpi-card.orange::before { background: linear-gradient(90deg, var(--orange), var(--yellow)); }
+.kpi-card.red::before    { background: linear-gradient(90deg, var(--red), var(--orange)); }
+
+.kpi-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.kpi-value { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 900; color: var(--text); line-height: 1; }
+.kpi-sub   { font-size: 11px; color: var(--text2); margin-top: 6px; }
+.kpi-icon  { position: absolute; top: 14px; right: 16px; font-size: 22px; opacity: .18; }
+
+/* ── CARDS / PANELS ── */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.panel-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panel-title-icon { font-size: 14px; }
+.panel-subtitle { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.panel-body { padding: 16px 18px; }
+
+/* ── 2-col layout ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.grid-7-5 { display: grid; grid-template-columns: 7fr 5fr; gap: 16px; margin-bottom: 16px; }
+
+/* ── RISK BADGE ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'DM Mono', monospace;
+}
+.badge-baixo    { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+.badge-medio    { background: rgba(245,158,11,.15); color: var(--yellow); border: 1px solid rgba(245,158,11,.25); }
+.badge-alto     { background: rgba(249,115,22,.15); color: var(--orange); border: 1px solid rgba(249,115,22,.25); }
+.badge-critico  { background: rgba(239,68,68,.18); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+
+/* ── TABLE ── */
+.bi-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.bi-table thead tr { border-bottom: 1px solid var(--border2); }
+.bi-table th { 
+  padding: 9px 12px; 
+  text-align: left; 
+  font-size: 10.5px; 
+  font-weight: 600; 
+  color: var(--text3); 
+  text-transform: uppercase; 
+  letter-spacing: .8px; 
+  white-space: nowrap;
+}
+.bi-table td { 
+  padding: 9px 12px; 
+  border-bottom: 1px solid rgba(42,47,69,.5); 
+  color: var(--text); 
+  vertical-align: middle;
+}
+.bi-table tbody tr:hover td { background: rgba(79,127,255,.04); }
+.bi-table tbody tr:last-child td { border-bottom: none; }
+
+/* ── SCORE BAR ── */
+.score-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.score-bar-bg { 
+  flex: 1; 
+  height: 5px; 
+  background: var(--bg4); 
+  border-radius: 3px; 
+  overflow: hidden; 
+  min-width: 60px;
+}
+.score-bar-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
+.score-bar-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); min-width: 28px; }
+
+/* ── HEATMAP ── */
+.heatmap-wrap { overflow-x: auto; }
+.heatmap-table { border-collapse: collapse; font-size: 11px; min-width: 800px; width: 100%; }
+.heatmap-table th { 
+  padding: 6px 8px; 
+  font-size: 10px; 
+  color: var(--text3); 
+  text-transform: uppercase; 
+  letter-spacing: .5px; 
+  white-space: nowrap; 
+  font-weight: 600;
+  border-bottom: 1px solid var(--border2);
+}
+.heatmap-table th.sector-th { 
+  transform-origin: center center;
+  writing-mode: vertical-lr;
+  text-align: left;
+  height: 80px;
+  padding: 6px 4px;
+}
+.heatmap-table td { 
+  padding: 5px 6px; 
+  text-align: center; 
+  font-family: 'DM Mono', monospace;
+  font-size: 10.5px;
+  border: 1px solid rgba(42,47,69,.4);
+  transition: opacity .2s;
+  cursor: default;
+}
+.heatmap-table td.dim-name { 
+  text-align: left; 
+  font-family: 'DM Sans', sans-serif; 
+  font-size: 11px; 
+  color: var(--text2); 
+  white-space: nowrap; 
+  padding: 5px 10px;
+  font-weight: 500;
+}
+.heatmap-table tr:hover td { opacity: .85; }
+
+/* ── CHART CONTAINERS ── */
+.chart-container { position: relative; }
+.chart-container canvas { max-height: 280px; }
+
+/* ── GAUGE ── */
+.gauge-wrap { display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 10px 0; }
+.gauge-label { font-size: 11px; color: var(--text3); margin-top: 6px; text-align: center; }
+
+/* ── RANKING LIST ── */
+.rank-list { display: flex; flex-direction: column; gap: 8px; }
+.rank-item { display: flex; align-items: center; gap: 10px; }
+.rank-num { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); width: 16px; text-align: right; }
+.rank-name { flex: 1; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rank-bar-bg { width: 100px; height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; }
+.rank-bar-fill { height: 100%; border-radius: 2px; }
+.rank-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text2); width: 30px; text-align: right; }
+
+/* ── DONUT LEGEND ── */
+.donut-legend { display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── SECTOR DETAIL ── */
+.sector-detail { display: none; }
+.sector-detail.active { display: block; }
+
+/* ── ALERT CARDS ── */
+.alert-list { display: flex; flex-direction: column; gap: 10px; }
+.alert-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border-left: 4px solid;
+  transition: background .15s;
+}
+.alert-card:hover { background: var(--bg4); }
+.alert-card.urgente { border-left-color: var(--red); }
+.alert-card.alto { border-left-color: var(--orange); }
+.alert-card.medio { border-left-color: var(--yellow); }
+.alert-icon { font-size: 18px; flex-shrink: 0; }
+.alert-content { flex: 1; }
+.alert-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.alert-desc { font-size: 12px; color: var(--text2); margin-top: 3px; line-height: 1.4; }
+.alert-meta { display: flex; gap: 8px; margin-top: 6px; }
+.alert-chip { 
+  background: var(--bg4); border: 1px solid var(--border2); 
+  border-radius: 4px; padding: 2px 7px; 
+  font-size: 10px; color: var(--text3); 
+  font-family: 'DM Mono', monospace;
+}
+
+/* ── SCROLLABLE TABLE WRAPPER ── */
+.table-scroll { max-height: 340px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border2) transparent; }
+.table-scroll::-webkit-scrollbar { width: 4px; }
+.table-scroll::-webkit-scrollbar-thumb { background: var(--border2); }
+
+/* ── TOOLTIP ── */
+.hm-tooltip {
+  position: fixed;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  pointer-events: none;
+  display: none;
+  z-index: 999;
+  box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page.active .kpi-card { animation: fadeUp .3s ease both; }
+.page.active .kpi-card:nth-child(1) { animation-delay: .05s; }
+.page.active .kpi-card:nth-child(2) { animation-delay: .10s; }
+.page.active .kpi-card:nth-child(3) { animation-delay: .15s; }
+.page.active .kpi-card:nth-child(4) { animation-delay: .20s; }
+.page.active .panel { animation: fadeUp .35s ease both; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">Riscos<br>Psicossociais</div>
+    <div class="sub">NR-1 · COPSOQ-III</div>
+  </div>
+
+  <div class="sidebar-section-label">Visão</div>
+  <div class="nav-item active" onclick="nav('overview',this)">
+    <span class="nav-icon">📊</span> Visão Executiva
+  </div>
+  <div class="nav-item" onclick="nav('participacao',this)">
+    <span class="nav-icon">👥</span> Participação
+  </div>
+
+  <div class="sidebar-section-label">Análise</div>
+  <div class="nav-item" onclick="nav('copsoq',this)">
+    <span class="nav-icon">📐</span> Scores COPSOQ
+  </div>
+  <div class="nav-item" onclick="nav('heatmap',this)">
+    <span class="nav-icon">🔥</span> Heatmap de Riscos
+  </div>
+  <div class="nav-item" onclick="nav('setores',this)">
+    <span class="nav-icon">🏢</span> Por Setor
+  </div>
+  <div class="nav-item" onclick="nav('funcoes',this)">
+    <span class="nav-icon">👤</span> Por Função
+  </div>
+
+  <div class="sidebar-section-label">Ação</div>
+  <div class="nav-item" onclick="nav('plano',this)">
+    <span class="nav-icon">📋</span> Plano de Ação
+  </div>
+
+  <div class="sidebar-footer">
+    422 respondentes · 23 setores<br>
+    Metodologia COPSOQ-III
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">Visão Executiva</div>
+    <span class="topbar-badge">422 respondentes</span>
+    <span class="topbar-badge">23 setores</span>
+    <div class="topbar-right">
+      <select class="filter-select" id="sector-filter" onchange="applyFilter()">
+        <option value="ALL">Todos os setores</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ════════════════════════════ PAGE: OVERVIEW ════════════════════════════ -->
+    <div class="page active" id="page-overview">
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">Respondentes</div>
+          <div class="kpi-value">422</div>
+          <div class="kpi-sub">trabalhadores avaliados</div>
+          <div class="kpi-icon">👥</div>
+        </div>
+        <div class="kpi-card teal">
+          <div class="kpi-label">Setores</div>
+          <div class="kpi-value">23</div>
+          <div class="kpi-sub">unidades avaliadas</div>
+          <div class="kpi-icon">🏢</div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-label">Risco Médio Geral</div>
+          <div class="kpi-value" id="kpi-risk">—</div>
+          <div class="kpi-sub">escala 1–5 COPSOQ</div>
+          <div class="kpi-icon">📊</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">Dimensões Alto/Crítico</div>
+          <div class="kpi-value" id="kpi-critical">—</div>
+          <div class="kpi-sub">requerem ação imediata</div>
+          <div class="kpi-icon">⚠️</div>
+        </div>
+      </div>
+
+      <div class="grid-7-5">
+        <div class="panel">
+          <div class="panel-header">
+            <div>
+              <div class="panel-title"><span class="panel-title-icon">📐</span> Ranking de Dimensões COPSOQ</div>
+              <div class="panel-subtitle">Ordenado por score de risco — maior = mais crítico</div>
+            </div>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div class="table-scroll">
+              <table class="bi-table" id="overview-dim-table"></table>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title"><span class="panel-title-icon">🎯</span> Distribuição por Nível de Risco</div>
+            </div>
+            <div class="panel-body">
+              <div class="chart-container" style="height:180px;">
+                <canvas id="risk-donut"></canvas>
+              </div>
+              <div class="donut-legend" id="donut-legend" style="margin-top:12px;"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title"><span class="panel-title-icon">🏆</span> Top 5 Maiores Riscos</div>
+            </div>
+            <div class="panel-body">
+              <div class="rank-list" id="top5-risks"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-title-icon">📊</span> Scores por Dimensão</div>
+          <div class="panel-subtitle">Barras horizontais · escala 1–5</div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-container" style="height:340px;">
+            <canvas id="dim-bar-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════ PAGE: PARTICIPAÇÃO ════════════════════════ -->
+    <div class="page" id="page-participacao">
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">Total Respondentes</div>
+          <div class="kpi-value">422</div>
+          <div class="kpi-sub">questionários válidos</div>
+          <div class="kpi-icon">📝</div>
+        </div>
+        <div class="kpi-card teal">
+          <div class="kpi-label">Setores com Respostas</div>
+          <div class="kpi-value">23</div>
+          <div class="kpi-sub">de todos os setores</div>
+          <div class="kpi-icon">✅</div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-label">Maior Setor</div>
+          <div class="kpi-value">TRANSPORTE</div>
+          <div class="kpi-sub" style="font-size:10px;">94 respondentes · 22.3%</div>
+          <div class="kpi-icon">🚛</div>
+        </div>
+        <div class="kpi-card red">
+          <div class="kpi-label">Menor Setor</div>
+          <div class="kpi-value">JURÍDICO</div>
+          <div class="kpi-sub" style="font-size:10px;">3 respondentes · 0.7%</div>
+          <div class="kpi-icon">⚖️</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-icon">📊</span> Respondentes por Setor</div>
+          </div>
+          <div class="panel-body">
+            <div class="chart-container" style="height:300px;">
+              <canvas id="part-bar"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-icon">📋</span> Tabela de Participação</div>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div class="table-scroll">
+              <table class="bi-table" id="part-table"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-title-icon">🎯</span> Objetivo da Avaliação</div>
+        </div>
+        <div class="panel-body">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;border-top:3px solid var(--accent);">
+              <div style="font-size:18px;margin-bottom:8px;">📋</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;">Avaliação de Condições</div>
+              <div style="font-size:11px;color:var(--text2);line-height:1.5;">Foco nas condições de trabalho, não no desempenho individual</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;border-top:3px solid var(--teal);">
+              <div style="font-size:18px;margin-bottom:8px;">🔒</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;">Anonimato Total</div>
+              <div style="font-size:11px;color:var(--text2);line-height:1.5;">Respostas tratadas coletivamente, sem identificação individual</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;border-top:3px solid var(--purple);">
+              <div style="font-size:18px;margin-bottom:8px;">🔬</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;">Metodologia COPSOQ</div>
+              <div style="font-size:11px;color:var(--text2);line-height:1.5;">Questionário validado internacionalmente para riscos psicossociais</div>
+            </div>
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px;border-top:3px solid var(--green);">
+              <div style="font-size:18px;margin-bottom:8px;">⚖️</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;">Base Legal NR-1</div>
+              <div style="font-size:11px;color:var(--text2);line-height:1.5;">Programa de Gerenciamento de Riscos Ocupacionais obrigatório</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════ PAGE: COPSOQ ════════════════════════════ -->
+    <div class="page" id="page-copsoq">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-icon">📊</span> Scores por Dimensão</div>
+            <div class="panel-subtitle">Escala 1–5 · maior score = maior risco</div>
+          </div>
+          <div class="panel-body">
+            <div class="chart-container" style="height:380px;">
+              <canvas id="copsoq-radar"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-icon">📐</span> Estatísticas Detalhadas</div>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div class="table-scroll" style="max-height:420px;">
+              <table class="bi-table" id="copsoq-table"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-title-icon">📏</span> Barras de Risco por Dimensão</div>
+          <div class="panel-subtitle">Score médio com intervalo P25–P75</div>
+        </div>
+        <div class="panel-body">
+          <div id="dim-bars-detail"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════ PAGE: HEATMAP ════════════════════════════ -->
+    <div class="page" id="page-heatmap">
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title"><span class="panel-title-icon">🔥</span> Heatmap de Risco · Dimensão × Setor</div>
+            <div class="panel-subtitle">Score médio por célula · Passe o mouse para detalhes</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;font-size:11px;color:var(--text3);">
+            <span style="display:inline-block;width:12px;height:12px;background:#22c55e;border-radius:2px;"></span>Baixo
+            <span style="display:inline-block;width:12px;height:12px;background:#f59e0b;border-radius:2px;"></span>Médio
+            <span style="display:inline-block;width:12px;height:12px;background:#f97316;border-radius:2px;"></span>Alto
+            <span style="display:inline-block;width:12px;height:12px;background:#ef4444;border-radius:2px;"></span>Crítico
+          </div>
+        </div>
+        <div class="panel-body" style="padding:12px;">
+          <div class="heatmap-wrap">
+            <table class="heatmap-table" id="heatmap-table"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════ PAGE: SETORES ════════════════════════════ -->
+    <div class="page" id="page-setores">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-icon">🏢</span> Risco Médio por Setor</div>
+          </div>
+          <div class="panel-body">
+            <div class="chart-container" style="height:320px;">
+              <canvas id="sector-chart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-icon">🔥</span> Burnout · Estresse · Conflito Família</div>
+            <div class="panel-subtitle">Por setor — dimensões críticas de bem-estar</div>
+          </div>
+          <div class="panel-body">
+            <div class="chart-container" style="height:320px;">
+              <canvas id="burnout-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-title-icon">📋</span> Tabela de Risco por Setor</div>
+          <div class="panel-subtitle">Clique em um setor para ver perfil detalhado</div>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table class="bi-table" id="sector-table"></table>
+        </div>
+      </div>
+
+      <div class="panel" id="sector-detail-panel" style="display:none;">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-title-icon">🔍</span> Perfil Detalhado — <span id="sector-detail-name"></span></div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-container" style="height:260px;">
+            <canvas id="sector-detail-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════ PAGE: FUNÇÕES ════════════════════════════ -->
+    <div class="page" id="page-funcoes">
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-icon">👤</span> Top 15 Funções por Risco</div>
+          </div>
+          <div class="panel-body">
+            <div class="chart-container" style="height:340px;">
+              <canvas id="func-chart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title"><span class="panel-title-icon">📋</span> Tabela por Função</div>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div class="table-scroll">
+              <table class="bi-table" id="func-table"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════ PAGE: PLANO ════════════════════════════ -->
+    <div class="page" id="page-plano">
+      <div class="kpi-grid">
+        <div class="kpi-card red">
+          <div class="kpi-label">Intervenção Urgente</div>
+          <div class="kpi-value">2</div>
+          <div class="kpi-sub">dimensões críticas</div>
+          <div class="kpi-icon">🚨</div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-label">Ação Prioritária</div>
+          <div class="kpi-value">2</div>
+          <div class="kpi-sub">dimensões alto risco</div>
+          <div class="kpi-icon">⚠️</div>
+        </div>
+        <div class="kpi-card teal">
+          <div class="kpi-label">Monitoramento</div>
+          <div class="kpi-value">8</div>
+          <div class="kpi-sub">dimensões médio risco</div>
+          <div class="kpi-icon">👁️</div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Prevenção</div>
+          <div class="kpi-value">8</div>
+          <div class="kpi-sub">dimensões baixo risco</div>
+          <div class="kpi-icon">✅</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-title-icon">🚨</span> Ações Imediatas — Alto e Crítico</div>
+        </div>
+        <div class="panel-body">
+          <div class="alert-list" id="action-alerts"></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <div class="panel-header">
+          <div class="panel-title"><span class="panel-title-icon">📋</span> Plano Completo de Intervenção</div>
+          <div class="panel-subtitle">Hierarquia de controles NR-1 · COPSOQ-III</div>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <table class="bi-table" id="action-table"></table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div class="hm-tooltip" id="hm-tooltip"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const DATA = {"total":422,"n_sectors":23,"sectors":["ADMINISTRATIVO","CAF/PÓS-VENDAS","CANAIS DIGITAIS","CAPACITAÇÃO","CDA","CDS","COMPRAS","CONTABILIDADE","CSC","DEPARTAMENTO PESSOAL","DIRETORIA","EXPANSÃO","FINANCEIRO","FRANQUIA","GESTÃO","JURÍDICO","LOJAS","MARKETING","OPERAÇÕES","RH","T.I","TRANSPORTE","VENDAS"],"dim_names":["Exigências Quantitativas","Ritmo de Trabalho","Exigências Emocionais","Influência no Trabalho","Possib. Desenvolvimento","Comunicação/Transparência","Reconhecimento","Apoio do Líder","Ambiente entre Colegas","Qualidade da Liderança","Distribuição do Trabalho","Autoeficácia","Sentido do Trabalho","Satisfação no Trabalho","Insegurança no Trabalho","Saúde Geral","Conflito Trabalho-Família","Burnout / Exaustão","Estresse / Irritabilidade","Violência / Assédio"],"dim_stats":{"Exigências Quantitativas":{"mean":2.67,"min":1.0,"max":3.67,"p25":2.33,"p75":3.0,"level":"Médio"},"Ritmo de Trabalho":{"mean":3.79,"min":1.0,"max":5.0,"p25":3.0,"p75":4.5,"level":"Alto"},"Exigências Emocionais":{"mean":3.52,"min":1.0,"max":5.0,"p25":3.0,"p75":5.0,"level":"Alto"},"Influência no Trabalho":{"mean":2.32,"min":1.0,"max":5.0,"p25":1.5,"p75":3.0,"level":"Médio"},"Possib. Desenvolvimento":{"mean":1.92,"min":1.0,"max":5.0,"p25":1.0,"p75":3.0,"level":"Baixo"},"Comunicação/Transparência":{"mean":2.28,"min":1.0,"max":5.0,"p25":1.67,"p75":3.0,"level":"Médio"},"Reconhecimento":{"mean":2.38,"min":1.0,"max":5.0,"p25":1.5,"p75":3.0,"level":"Médio"},"Apoio do Líder":{"mean":1.98,"min":1.0,"max":5.0,"p25":1.0,"p75":3.0,"level":"Baixo"},"Ambiente entre Colegas":{"mean":1.68,"min":1.0,"max":5.0,"p25":1.0,"p75":2.0,"level":"Baixo"},"Qualidade da Liderança":{"mean":2.06,"min":1.0,"max":5.0,"p25":1.2,"p75":2.6,"level":"Médio"},"Distribuição do Trabalho":{"mean":2.44,"min":1.0,"max":5.0,"p25":1.0,"p75":3.0,"level":"Médio"},"Autoeficácia":{"mean":1.61,"min":1.0,"max":5.0,"p25":1.0,"p75":2.0,"level":"Baixo"},"Sentido do Trabalho":{"mean":1.81,"min":1.0,"max":5.0,"p25":1.0,"p75":2.33,"level":"Baixo"},"Satisfação no Trabalho":{"mean":2.14,"min":1.0,"max":5.0,"p25":1.0,"p75":3.0,"level":"Médio"},"Insegurança no Trabalho":{"mean":3.5,"min":1.0,"max":5.0,"p25":2.0,"p75":5.0,"level":"Alto"},"Saúde Geral":{"mean":3.41,"min":1.0,"max":5.0,"p25":3.0,"p75":5.0,"level":"Alto"},"Conflito Trabalho-Família":{"mean":2.67,"min":1.0,"max":5.0,"p25":2.0,"p75":3.5,"level":"Médio"},"Burnout / Exaustão":{"mean":2.76,"min":1.0,"max":5.0,"p25":1.67,"p75":3.67,"level":"Médio"},"Estresse / Irritabilidade":{"mean":2.17,"min":1.0,"max":5.0,"p25":1.33,"p75":2.67,"level":"Médio"},"Violência / Assédio":{"mean":1.08,"min":1.0,"max":5.0,"p25":1.0,"p75":1.0,"level":"Baixo"}},"sector_data":{"ADMINISTRATIVO":{"n":20,"avg":2.76,"level":"Médio","dims":{"Exigências Quantitativas":2.75,"Ritmo de Trabalho":3.88,"Exigências Emocionais":3.7,"Influência no Trabalho":2.58,"Possib. Desenvolvimento":2.4,"Comunicação/Transparência":2.92,"Reconhecimento":3.2,"Apoio do Líder":2.0,"Ambiente entre Colegas":1.95,"Qualidade da Liderança":2.62,"Distribuição do Trabalho":3.25,"Autoeficácia":1.8,"Sentido do Trabalho":2.37,"Satisfação no Trabalho":3.0,"Insegurança no Trabalho":3.4,"Saúde Geral":3.3,"Conflito Trabalho-Família":2.88,"Burnout / Exaustão":3.27,"Estresse / Irritabilidade":2.77,"Violência / Assédio":1.17}},"CAF/PÓS-VENDAS":{"n":34,"avg":2.58,"level":"Médio","dims":{"Exigências Quantitativas":2.92,"Ritmo de Trabalho":4.0,"Exigências Emocionais":4.0,"Influência no Trabalho":2.26,"Possib. Desenvolvimento":1.71,"Comunicação/Transparência":2.47,"Reconhecimento":2.69,"Apoio do Líder":1.71,"Ambiente entre Colegas":1.76,"Qualidade da Liderança":2.12,"Distribuição do Trabalho":2.85,"Autoeficácia":1.53,"Sentido do Trabalho":2.39,"Satisfação no Trabalho":2.71,"Insegurança no Trabalho":3.71,"Saúde Geral":2.97,"Conflito Trabalho-Família":3.01,"Burnout / Exaustão":3.3,"Estresse / Irritabilidade":2.48,"Violência / Assédio":1.02}},"CANAIS DIGITAIS":{"n":3,"avg":2.05,"level":"Médio","dims":{"Exigências Quantitativas":2.44,"Ritmo de Trabalho":2.83,"Exigências Emocionais":1.67,"Influência no Trabalho":2.83,"Possib. Desenvolvimento":2.0,"Comunicação/Transparência":2.11,"Reconhecimento":1.33,"Apoio do Líder":2.0,"Ambiente entre Colegas":1.0,"Qualidade da Liderança":1.0,"Distribuição do Trabalho":1.33,"Autoeficácia":1.67,"Sentido do Trabalho":1.89,"Satisfação no Trabalho":1.67,"Insegurança no Trabalho":3.0,"Saúde Geral":4.0,"Conflito Trabalho-Família":2.33,"Burnout / Exaustão":2.78,"Estresse / Irritabilidade":2.11,"Violência / Assédio":1.0}},"CAPACITAÇÃO":{"n":4,"avg":2.4,"level":"Médio","dims":{"Exigências Quantitativas":2.67,"Ritmo de Trabalho":4.0,"Exigências Emocionais":3.0,"Influência no Trabalho":2.25,"Possib. Desenvolvimento":1.0,"Comunicação/Transparência":2.75,"Reconhecimento":3.25,"Apoio do Líder":2.25,"Ambiente entre Colegas":1.5,"Qualidade da Liderança":1.9,"Distribuição do Trabalho":2.5,"Autoeficácia":1.25,"Sentido do Trabalho":1.67,"Satisfação no Trabalho":2.0,"Insegurança no Trabalho":2.25,"Saúde Geral":4.5,"Conflito Trabalho-Família":2.75,"Burnout / Exaustão":2.67,"Estresse / Irritabilidade":2.67,"Violência / Assédio":1.25}},"CDA":{"n":23,"avg":2.16,"level":"Médio","dims":{"Exigências Quantitativas":2.46,"Ritmo de Trabalho":3.74,"Exigências Emocionais":3.0,"Influência no Trabalho":2.65,"Possib. Desenvolvimento":2.09,"Comunicação/Transparência":1.8,"Reconhecimento":1.96,"Apoio do Líder":1.57,"Ambiente entre Colegas":1.3,"Qualidade da Liderança":1.8,"Distribuição do Trabalho":2.04,"Autoeficácia":1.43,"Sentido do Trabalho":1.45,"Satisfação no Trabalho":1.43,"Insegurança no Trabalho":3.74,"Saúde Geral":3.65,"Conflito Trabalho-Família":2.2,"Burnout / Exaustão":1.99,"Estresse / Irritabilidade":1.84,"Violência / Assédio":1.12}},"CDS":{"n":18,"avg":2.09,"level":"Médio","dims":{"Exigências Quantitativas":2.24,"Ritmo de Trabalho":3.31,"Exigências Emocionais":2.72,"Influência no Trabalho":2.94,"Possib. Desenvolvimento":1.67,"Comunicação/Transparência":2.15,"Reconhecimento":1.72,"Apoio do Líder":1.11,"Ambiente entre Colegas":1.28,"Qualidade da Liderança":1.54,"Distribuição do Trabalho":1.56,"Autoeficácia":1.44,"Sentido do Trabalho":1.7,"Satisfação no Trabalho":1.56,"Insegurança no Trabalho":3.61,"Saúde Geral":4.33,"Conflito Trabalho-Família":2.06,"Burnout / Exaustão":1.98,"Estresse / Irritabilidade":1.83,"Violência / Assédio":1.07}},"COMPRAS":{"n":6,"avg":2.07,"level":"Médio","dims":{"Exigências Quantitativas":2.83,"Ritmo de Trabalho":3.92,"Exigências Emocionais":3.5,"Influência no Trabalho":1.58,"Possib. Desenvolvimento":1.0,"Comunicação/Transparência":2.06,"Reconhecimento":1.17,"Apoio do Líder":1.5,"Ambiente entre Colegas":1.17,"Qualidade da Liderança":1.27,"Distribuição do Trabalho":2.67,"Autoeficácia":1.5,"Sentido do Trabalho":1.72,"Satisfação no Trabalho":1.5,"Insegurança no Trabalho":3.33,"Saúde Geral":3.0,"Conflito Trabalho-Família":2.0,"Burnout / Exaustão":2.83,"Estresse / Irritabilidade":1.83,"Violência / Assédio":1.0}},"CONTABILIDADE":{"n":11,"avg":2.46,"level":"Médio","dims":{"Exigências Quantitativas":3.09,"Ritmo de Trabalho":4.45,"Exigências Emocionais":4.0,"Influência no Trabalho":1.77,"Possib. Desenvolvimento":1.91,"Comunicação/Transparência":2.58,"Reconhecimento":2.36,"Apoio do Líder":2.18,"Ambiente entre Colegas":1.55,"Qualidade da Liderança":2.13,"Distribuição do Trabalho":2.55,"Autoeficácia":1.64,"Sentido do Trabalho":1.97,"Satisfação no Trabalho":2.64,"Insegurança no Trabalho":2.27,"Saúde Geral":3.18,"Conflito Trabalho-Família":2.64,"Burnout / Exaustão":3.0,"Estresse / Irritabilidade":2.27,"Violência / Assédio":1.0}},"CSC":{"n":4,"avg":2.84,"level":"Médio","dims":{"Exigências Quantitativas":3.0,"Ritmo de Trabalho":3.88,"Exigências Emocionais":4.0,"Influência no Trabalho":2.88,"Possib. Desenvolvimento":2.25,"Comunicação/Transparência":2.5,"Reconhecimento":4.25,"Apoio do Líder":3.75,"Ambiente entre Colegas":2.0,"Qualidade da Liderança":3.1,"Distribuição do Trabalho":3.5,"Autoeficácia":1.25,"Sentido do Trabalho":1.83,"Satisfação no Trabalho":2.75,"Insegurança no Trabalho":3.0,"Saúde Geral":2.25,"Conflito Trabalho-Família":3.25,"Burnout / Exaustão":3.75,"Estresse / Irritabilidade":2.67,"Violência / Assédio":1.0}},"DEPARTAMENTO PESSOAL":{"n":7,"avg":2.13,"level":"Médio","dims":{"Exigências Quantitativas":3.0,"Ritmo de Trabalho":4.29,"Exigências Emocionais":4.14,"Influência no Trabalho":1.93,"Possib. Desenvolvimento":1.14,"Comunicação/Transparência":1.71,"Reconhecimento":1.29,"Apoio do Líder":1.29,"Ambiente entre Colegas":1.14,"Qualidade da Liderança":1.14,"Distribuição do Trabalho":2.0,"Autoeficácia":1.14,"Sentido do Trabalho":1.29,"Satisfação no Trabalho":1.71,"Insegurança no Trabalho":3.29,"Saúde Geral":3.29,"Conflito Trabalho-Família":2.93,"Burnout / Exaustão":3.0,"Estresse / Irritabilidade":1.86,"Violência / Assédio":1.0}},"DIRETORIA":{"n":4,"avg":1.89,"level":"Baixo","dims":{"Exigências Quantitativas":2.83,"Ritmo de Trabalho":3.75,"Exigências Emocionais":2.5,"Influência no Trabalho":1.5,"Possib. Desenvolvimento":1.0,"Comunicação/Transparência":1.33,"Reconhecimento":1.5,"Apoio do Líder":1.0,"Ambiente entre Colegas":1.5,"Qualidade da Liderança":1.45,"Distribuição do Trabalho":1.75,"Autoeficácia":1.5,"Sentido do Trabalho":1.08,"Satisfação no Trabalho":1.5,"Insegurança no Trabalho":2.5,"Saúde Geral":3.75,"Conflito Trabalho-Família":2.38,"Burnout / Exaustão":2.08,"Estresse / Irritabilidade":1.83,"Violência / Assédio":1.0}},"EXPANSÃO":{"n":11,"avg":2.42,"level":"Médio","dims":{"Exigências Quantitativas":2.58,"Ritmo de Trabalho":3.73,"Exigências Emocionais":3.27,"Influência no Trabalho":2.36,"Possib. Desenvolvimento":2.45,"Comunicação/Transparência":2.45,"Reconhecimento":2.32,"Apoio do Líder":1.55,"Ambiente entre Colegas":1.91,"Qualidade da Liderança":1.91,"Distribuição do Trabalho":2.82,"Autoeficácia":1.64,"Sentido do Trabalho":2.48,"Satisfação no Trabalho":2.55,"Insegurança no Trabalho":2.82,"Saúde Geral":2.55,"Conflito Trabalho-Família":2.86,"Burnout / Exaustão":3.03,"Estresse / Irritabilidade":2.06,"Violência / Assédio":1.0}},"FINANCEIRO":{"n":16,"avg":2.18,"level":"Médio","dims":{"Exigências Quantitativas":2.88,"Ritmo de Trabalho":4.03,"Exigências Emocionais":2.69,"Influência no Trabalho":2.22,"Possib. Desenvolvimento":2.0,"Comunicação/Transparência":1.83,"Reconhecimento":1.84,"Apoio do Líder":1.44,"Ambiente entre Colegas":1.25,"Qualidade da Liderança":1.49,"Distribuição do Trabalho":1.81,"Autoeficácia":1.38,"Sentido do Trabalho":1.77,"Satisfação no Trabalho":1.75,"Insegurança no Trabalho":3.81,"Saúde Geral":3.88,"Conflito Trabalho-Família":2.28,"Burnout / Exaustão":2.33,"Estresse / Irritabilidade":2.0,"Violência / Assédio":1.0}},"FRANQUIA":{"n":20,"avg":2.58,"level":"Médio","dims":{"Exigências Quantitativas":2.97,"Ritmo de Trabalho":4.2,"Exigências Emocionais":4.5,"Influência no Trabalho":1.9,"Possib. Desenvolvimento":1.7,"Comunicação/Transparência":2.57,"Reconhecimento":2.8,"Apoio do Líder":1.95,"Ambiente entre Colegas":1.75,"Qualidade da Liderança":2.14,"Distribuição do Trabalho":2.25,"Autoeficácia":2.0,"Sentido do Trabalho":1.72,"Satisfação no Trabalho":2.15,"Insegurança no Trabalho":4.1,"Saúde Geral":2.85,"Conflito Trabalho-Família":3.2,"Burnout / Exaustão":3.18,"Estresse / Irritabilidade":2.6,"Violência / Assédio":1.0}},"GESTÃO":{"n":9,"avg":2.56,"level":"Médio","dims":{"Exigências Quantitativas":2.7,"Ritmo de Trabalho":3.67,"Exigências Emocionais":2.78,"Influência no Trabalho":2.61,"Possib. Desenvolvimento":2.0,"Comunicação/Transparência":2.67,"Reconhecimento":2.5,"Apoio do Líder":3.11,"Ambiente entre Colegas":1.56,"Qualidade da Liderança":2.4,"Distribuição do Trabalho":3.33,"Autoeficácia":2.11,"Sentido do Trabalho":2.22,"Satisfação no Trabalho":2.56,"Insegurança no Trabalho":2.67,"Saúde Geral":3.22,"Conflito Trabalho-Família":2.67,"Burnout / Exaustão":2.93,"Estresse / Irritabilidade":2.52,"Violência / Assédio":1.0}},"JURÍDICO":{"n":3,"avg":2.12,"level":"Médio","dims":{"Exigências Quantitativas":2.89,"Ritmo de Trabalho":4.0,"Exigências Emocionais":3.67,"Influência no Trabalho":2.5,"Possib. Desenvolvimento":1.33,"Comunicação/Transparência":2.56,"Reconhecimento":1.17,"Apoio do Líder":1.0,"Ambiente entre Colegas":1.0,"Qualidade da Liderança":1.6,"Distribuição do Trabalho":1.0,"Autoeficácia":1.33,"Sentido do Trabalho":1.33,"Satisfação no Trabalho":2.33,"Insegurança no Trabalho":2.67,"Saúde Geral":3.67,"Conflito Trabalho-Família":2.83,"Burnout / Exaustão":2.56,"Estresse / Irritabilidade":1.89,"Violência / Assédio":1.0}},"LOJAS":{"n":11,"avg":2.31,"level":"Médio","dims":{"Exigências Quantitativas":2.3,"Ritmo de Trabalho":3.59,"Exigências Emocionais":4.36,"Influência no Trabalho":1.77,"Possib. Desenvolvimento":1.64,"Comunicação/Transparência":1.67,"Reconhecimento":1.73,"Apoio do Líder":2.18,"Ambiente entre Colegas":1.55,"Qualidade da Liderança":1.89,"Distribuição do Trabalho":1.82,"Autoeficácia":1.82,"Sentido do Trabalho":1.36,"Satisfação no Trabalho":1.91,"Insegurança no Trabalho":3.73,"Saúde Geral":2.82,"Conflito Trabalho-Família":3.32,"Burnout / Exaustão":3.09,"Estresse / Irritabilidade":2.42,"Violência / Assédio":1.15}},"MARKETING":{"n":2,"avg":2.68,"level":"Médio","dims":{"Exigências Quantitativas":2.5,"Ritmo de Trabalho":3.25,"Exigências Emocionais":3.5,"Influência no Trabalho":2.75,"Possib. Desenvolvimento":3.0,"Comunicação/Transparência":2.5,"Reconhecimento":1.75,"Apoio do Líder":3.0,"Ambiente entre Colegas":2.0,"Qualidade da Liderança":2.0,"Distribuição do Trabalho":1.5,"Autoeficácia":1.5,"Sentido do Trabalho":2.17,"Satisfação no Trabalho":3.0,"Insegurança no Trabalho":5.0,"Saúde Geral":4.0,"Conflito Trabalho-Família":1.75,"Burnout / Exaustão":4.0,"Estresse / Irritabilidade":3.5,"Violência / Assédio":1.0}},"OPERAÇÕES":{"n":68,"avg":2.55,"level":"Médio","dims":{"Exigências Quantitativas":2.63,"Ritmo de Trabalho":3.63,"Exigências Emocionais":3.44,"Influência no Trabalho":2.4,"Possib. Desenvolvimento":2.18,"Comunicação/Transparência":2.38,"Reconhecimento":2.62,"Apoio do Líder":2.32,"Ambiente entre Colegas":1.96,"Qualidade da Liderança":2.37,"Distribuição do Trabalho":2.79,"Autoeficácia":1.78,"Sentido do Trabalho":2.04,"Satisfação no Trabalho":2.37,"Insegurança no Trabalho":3.54,"Saúde Geral":3.71,"Conflito Trabalho-Família":2.66,"Burnout / Exaustão":2.85,"Estresse / Irritabilidade":2.11,"Violência / Assédio":1.17}},"RH":{"n":5,"avg":2.19,"level":"Médio","dims":{"Exigências Quantitativas":3.0,"Ritmo de Trabalho":4.1,"Exigências Emocionais":4.2,"Influência no Trabalho":1.7,"Possib. Desenvolvimento":1.4,"Comunicação/Transparência":2.6,"Reconhecimento":1.7,"Apoio do Líder":1.6,"Ambiente entre Colegas":1.4,"Qualidade da Liderança":1.4,"Distribuição do Trabalho":1.6,"Autoeficácia":1.0,"Sentido do Trabalho":1.6,"Satisfação no Trabalho":1.6,"Insegurança no Trabalho":3.2,"Saúde Geral":2.8,"Conflito Trabalho-Família":3.0,"Burnout / Exaustão":2.8,"Estresse / Irritabilidade":2.13,"Violência / Assédio":1.0}},"T.I":{"n":22,"avg":2.12,"level":"Médio","dims":{"Exigências Quantitativas":2.79,"Ritmo de Trabalho":3.75,"Exigências Emocionais":2.86,"Influência no Trabalho":2.11,"Possib. Desenvolvimento":1.64,"Comunicação/Transparência":2.21,"Reconhecimento":1.7,"Apoio do Líder":1.64,"Ambiente entre Colegas":1.23,"Qualidade da Liderança":1.61,"Distribuição do Trabalho":1.59,"Autoeficácia":1.45,"Sentido do Trabalho":1.59,"Satisfação no Trabalho":1.86,"Insegurança no Trabalho":3.09,"Saúde Geral":3.5,"Conflito Trabalho-Família":2.5,"Burnout / Exaustão":2.48,"Estresse / Irritabilidade":1.82,"Violência / Assédio":1.02}},"TRANSPORTE":{"n":94,"avg":2.4,"level":"Médio","dims":{"Exigências Quantitativas":2.55,"Ritmo de Trabalho":3.74,"Exigências Emocionais":3.56,"Influência no Trabalho":2.4,"Possib. Desenvolvimento":2.0,"Comunicação/Transparência":2.17,"Reconhecimento":2.53,"Apoio do Líder":2.12,"Ambiente entre Colegas":1.74,"Qualidade da Liderança":2.13,"Distribuição do Trabalho":2.6,"Autoeficácia":1.55,"Sentido do Trabalho":1.56,"Satisfação no Trabalho":1.86,"Insegurança no Trabalho":3.66,"Saúde Geral":3.59,"Conflito Trabalho-Família":2.62,"Burnout / Exaustão":2.52,"Estresse / Irritabilidade":2.04,"Violência / Assédio":1.05}},"VENDAS":{"n":27,"avg":2.49,"level":"Médio","dims":{"Exigências Quantitativas":2.52,"Ritmo de Trabalho":3.76,"Exigências Emocionais":3.96,"Influência no Trabalho":2.17,"Possib. Desenvolvimento":1.89,"Comunicação/Transparência":2.37,"Reconhecimento":2.52,"Apoio do Líder":2.41,"Ambiente entre Colegas":2.07,"Qualidade da Liderança":2.35,"Distribuição do Trabalho":2.22,"Autoeficácia":1.7,"Sentido do Trabalho":1.63,"Satisfação no Trabalho":2.56,"Insegurança no Trabalho":3.63,"Saúde Geral":2.74,"Conflito Trabalho-Família":2.85,"Burnout / Exaustão":3.05,"Estresse / Irritabilidade":2.28,"Violência / Assédio":1.17}}},"func_data":{"Motorista":{"n":25,"avg":2.4,"level":"Médio"},"Conferente":{"n":23,"avg":2.38,"level":"Médio"},"Assistente Administrativo":{"n":17,"avg":2.57,"level":"Médio"},"Auxiliar De Armazenamento":{"n":16,"avg":2.7,"level":"Médio"},"Auxiliar De Atendimento":{"n":16,"avg":2.52,"level":"Médio"},"Operador De Empilhadeira":{"n":13,"avg":2.18,"level":"Médio"},"Vendedor":{"n":12,"avg":2.42,"level":"Médio"},"Motorista De Carreta":{"n":12,"avg":2.6,"level":"Médio"},"Vendedora":{"n":9,"avg":2.56,"level":"Médio"},"Consultor De Franquias":{"n":9,"avg":2.77,"level":"Médio"},"Auxiliar Administrativo":{"n":8,"avg":2.13,"level":"Médio"},"Analista":{"n":8,"avg":2.45,"level":"Médio"},"Ajudante":{"n":6,"avg":2.52,"level":"Médio"},"Consultora De Franquias":{"n":5,"avg":2.3,"level":"Médio"},"Lider":{"n":5,"avg":1.98,"level":"Baixo"},"Assistente":{"n":5,"avg":2.41,"level":"Médio"},"Administrativo":{"n":4,"avg":2.52,"level":"Médio"},"Assistente De Apoio A Franquia":{"n":4,"avg":2.82,"level":"Médio"},"Desenvolvedor":{"n":4,"avg":2.2,"level":"Médio"},"Auxiliar":{"n":4,"avg":2.18,"level":"Médio"},"Motorista Carreta":{"n":4,"avg":2.32,"level":"Médio"},"Motorista Carreteiro":{"n":4,"avg":2.48,"level":"Médio"},"Gerente":{"n":3,"avg":2.34,"level":"Médio"},"Consultor":{"n":3,"avg":2.37,"level":"Médio"},"Lider Cda":{"n":3,"avg":2.5,"level":"Médio"},"Aprendiz":{"n":3,"avg":2.55,"level":"Médio"},"Líder De Cda":{"n":3,"avg":2.25,"level":"Médio"},"Aux De Armazenamento":{"n":3,"avg":2.79,"level":"Médio"},"Vendas":{"n":3,"avg":1.89,"level":"Baixo"},"Analista De Desenvolvimento De Negócios":{"n":2,"avg":2.43,"level":"Médio"}},"burnout_by_sector":{"ADMINISTRATIVO":{"burnout":3.27,"stress":2.77,"conflito":2.88},"CAF/PÓS-VENDAS":{"burnout":3.3,"stress":2.48,"conflito":3.01},"CANAIS DIGITAIS":{"burnout":2.78,"stress":2.11,"conflito":2.33},"CAPACITAÇÃO":{"burnout":2.67,"stress":2.67,"conflito":2.75},"CDA":{"burnout":1.99,"stress":1.84,"conflito":2.2},"CDS":{"burnout":1.98,"stress":1.83,"conflito":2.06},"COMPRAS":{"burnout":2.83,"stress":1.83,"conflito":2.0},"CONTABILIDADE":{"burnout":3.0,"stress":2.27,"conflito":2.64},"CSC":{"burnout":3.75,"stress":2.67,"conflito":3.25},"DEPARTAMENTO PESSOAL":{"burnout":3.0,"stress":1.86,"conflito":2.93},"DIRETORIA":{"burnout":2.08,"stress":1.83,"conflito":2.38},"EXPANSÃO":{"burnout":3.03,"stress":2.06,"conflito":2.86},"FINANCEIRO":{"burnout":2.33,"stress":2.0,"conflito":2.28},"FRANQUIA":{"burnout":3.18,"stress":2.6,"conflito":3.2},"GESTÃO":{"burnout":2.93,"stress":2.52,"conflito":2.67},"JURÍDICO":{"burnout":2.56,"stress":1.89,"conflito":2.83},"LOJAS":{"burnout":3.09,"stress":2.42,"conflito":3.32},"MARKETING":{"burnout":4.0,"stress":3.5,"conflito":1.75},"OPERAÇÕES":{"burnout":2.85,"stress":2.11,"conflito":2.66},"RH":{"burnout":2.8,"stress":2.13,"conflito":3.0},"T.I":{"burnout":2.48,"stress":1.82,"conflito":2.5},"TRANSPORTE":{"burnout":2.52,"stress":2.04,"conflito":2.62},"VENDAS":{"burnout":3.05,"stress":2.28,"conflito":2.85}}};
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+const LEVEL_COLORS = { Baixo: '#22c55e', Médio: '#f59e0b', Alto: '#f97316', Crítico: '#ef4444' };
+const LEVEL_BG     = { Baixo: 'rgba(34,197,94,.12)', Médio: 'rgba(245,158,11,.12)', Alto: 'rgba(249,115,22,.15)', Crítico: 'rgba(239,68,68,.18)' };
+
+function scoreColor(v) {
+  if (v <= 2) return '#22c55e';
+  if (v <= 3) return '#f59e0b';
+  if (v <= 4) return '#f97316';
+  return '#ef4444';
+}
+function scoreLevel(v) {
+  if (v <= 2) return 'Baixo';
+  if (v <= 3) return 'Médio';
+  if (v <= 4) return 'Alto';
+  return 'Crítico';
+}
+function badge(level) {
+  const cls = { Baixo:'badge-baixo', Médio:'badge-medio', Alto:'badge-alto', Crítico:'badge-critico' }[level] || 'badge-medio';
+  return `<span class="badge ${cls}">${level}</span>`;
+}
+function scoreBar(v, max=5) {
+  const pct = (v/max)*100;
+  const col = scoreColor(v);
+  return `<div class="score-bar-wrap">
+    <div class="score-bar-bg"><div class="score-bar-fill" style="width:${pct}%;background:${col}"></div></div>
+    <span class="score-bar-val">${v.toFixed(2)}</span>
+  </div>`;
+}
+
+// ── CHARTS REGISTRY ──────────────────────────────────────────────────────────
+const charts = {};
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+function mkChart(id, config) { destroyChart(id); charts[id] = new Chart(document.getElementById(id), config); return charts[id]; }
+
+const chartDefaults = {
+  plugins: { legend: { labels: { color: '#9198b8', font: { family: 'DM Sans', size: 11 } } } },
+  scales: {
+    x: { ticks: { color: '#9198b8', font: { family: 'DM Sans', size: 11 } }, grid: { color: 'rgba(42,47,69,.5)' } },
+    y: { ticks: { color: '#9198b8', font: { family: 'DM Sans', size: 11 } }, grid: { color: 'rgba(42,47,69,.5)' } }
+  }
+};
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+const PAGE_TITLES = {
+  overview:'Visão Executiva', participacao:'Participação',
+  copsoq:'Scores COPSOQ', heatmap:'Heatmap de Riscos',
+  setores:'Análise por Setor', funcoes:'Análise por Função', plano:'Plano de Ação'
+};
+function nav(pageId, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+pageId).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[pageId];
+  renderPage(pageId);
+}
+
+// ── FILTER ────────────────────────────────────────────────────────────────────
+const sel = document.getElementById('sector-filter');
+DATA.sectors.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+
+function applyFilter() { renderPage(currentPage()); }
+function currentPage() {
+  const act = document.querySelector('.page.active');
+  return act ? act.id.replace('page-','') : 'overview';
+}
+function getFilteredSectorData() {
+  const v = sel.value;
+  if (v === 'ALL') return DATA.sector_data;
+  return { [v]: DATA.sector_data[v] };
+}
+
+// ── SORTED DIMS ───────────────────────────────────────────────────────────────
+const sortedDims = Object.entries(DATA.dim_stats).sort((a,b) => b[1].mean - a[1].mean);
+
+// ── PAGE RENDERERS ────────────────────────────────────────────────────────────
+function renderPage(id) {
+  const renders = {
+    overview: renderOverview, participacao: renderParticipacao,
+    copsoq: renderCOPSOQ, heatmap: renderHeatmap,
+    setores: renderSetores, funcoes: renderFuncoes, plano: renderPlano
+  };
+  if (renders[id]) renders[id]();
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+function renderOverview() {
+  // KPIs
+  const allScores = Object.values(DATA.dim_stats).map(d => d.mean);
+  const avgRisk = (allScores.reduce((a,b)=>a+b,0)/allScores.length).toFixed(2);
+  const critCount = allScores.filter(s=>s>3).length;
+  document.getElementById('kpi-risk').textContent = avgRisk;
+  document.getElementById('kpi-critical').textContent = critCount;
+
+  // Dim table
+  const tbl = document.getElementById('overview-dim-table');
+  tbl.innerHTML = `<thead><tr>
+    <th>#</th><th>Dimensão COPSOQ</th><th>Score Médio</th><th>P75</th><th>Nível</th>
+  </tr></thead><tbody>${
+    sortedDims.map(([dim,s],i) => `<tr>
+      <td style="color:var(--text3);font-family:'DM Mono',monospace">${i+1}</td>
+      <td>${dim}</td>
+      <td>${scoreBar(s.mean)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text2)">${s.p75.toFixed(2)}</td>
+      <td>${badge(s.level)}</td>
+    </tr>`).join('')
+  }</tbody>`;
+
+  // Donut
+  const levelCounts = { Baixo:0, Médio:0, Alto:0, Crítico:0 };
+  sortedDims.forEach(([,s]) => levelCounts[s.level]++);
+  mkChart('risk-donut', {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(levelCounts),
+      datasets: [{ data: Object.values(levelCounts), backgroundColor: Object.keys(levelCounts).map(k=>LEVEL_COLORS[k]), borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: { cutout: '68%', plugins: { legend: { display:false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} dimensões` } } } }
+  });
+  const leg = document.getElementById('donut-legend');
+  leg.innerHTML = Object.entries(levelCounts).map(([l,v]) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${LEVEL_COLORS[l]}"></div><span style="color:var(--text2)">${l}</span><span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:var(--text)">${v}</span></div>`
+  ).join('');
+
+  // Top 5
+  const top5 = sortedDims.slice(0,5);
+  document.getElementById('top5-risks').innerHTML = top5.map(([dim,s],i) => `
+    <div class="rank-item">
+      <span class="rank-num">${i+1}</span>
+      <span class="rank-name">${dim}</span>
+      <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${(s.mean/5)*100}%;background:${scoreColor(s.mean)}"></div></div>
+      <span class="rank-val">${s.mean.toFixed(2)}</span>
+    </div>`).join('');
+
+  // Horizontal bar chart
+  const dims = sortedDims.map(([d])=>d);
+  const vals = sortedDims.map(([,s])=>s.mean);
+  mkChart('dim-bar-chart', {
+    type: 'bar',
+    data: {
+      labels: dims.map(d => d.length > 22 ? d.slice(0,22)+'…' : d),
+      datasets: [{ label:'Score de Risco', data: vals, backgroundColor: vals.map(v=>scoreColor(v)+'cc'), borderRadius: 4, borderSkipped: false }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display:false }, tooltip: { callbacks: { label: ctx => ` Score: ${ctx.raw.toFixed(2)} · ${scoreLevel(ctx.raw)}` } } },
+      scales: {
+        x: { min:0, max:5, ticks: { color:'#9198b8', font:{family:'DM Sans',size:11} }, grid: { color:'rgba(42,47,69,.5)' } },
+        y: { ticks: { color:'#9198b8', font:{family:'DM Sans',size:11} }, grid: { display:false } }
+      }
+    }
+  });
+}
+
+// ── PARTICIPAÇÃO ──────────────────────────────────────────────────────────────
+function renderParticipacao() {
+  const secs = DATA.sectors;
+  const counts = secs.map(s => DATA.sector_data[s].n);
+  const total = counts.reduce((a,b)=>a+b,0);
+
+  mkChart('part-bar', {
+    type: 'bar',
+    data: {
+      labels: secs.map(s => s.length>10 ? s.slice(0,10)+'…' : s),
+      datasets: [{ label:'Respondentes', data:counts, backgroundColor:'#4f7fff99', borderRadius:4 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false} },
+      scales: {
+        x: { ticks:{color:'#9198b8',font:{family:'DM Sans',size:10},maxRotation:45}, grid:{display:false} },
+        y: { ticks:{color:'#9198b8',font:{family:'DM Sans',size:11}}, grid:{color:'rgba(42,47,69,.5)'} }
+      }
+    }
+  });
+
+  const tbl = document.getElementById('part-table');
+  tbl.innerHTML = `<thead><tr><th>Setor</th><th>Respondentes</th><th>% do Total</th><th>Status</th></tr></thead><tbody>${
+    secs.map((s,i) => {
+      const n = DATA.sector_data[s].n;
+      const pct = (n/total*100).toFixed(1);
+      const status = n>=3 ? '✅ Válido' : n>=1 ? '⚠️ Atenção' : '❌ Insuficiente';
+      const sc = n>=3 ? '#22c55e' : n>=1 ? '#f59e0b' : '#ef4444';
+      return `<tr><td>${s}</td><td style="font-family:'DM Mono',monospace">${n}</td><td style="font-family:'DM Mono',monospace">${pct}%</td><td style="color:${sc}">${status}</td></tr>`;
+    }).join('')
+  }</tbody>`;
+}
+
+// ── COPSOQ ────────────────────────────────────────────────────────────────────
+function renderCOPSOQ() {
+  const dims = DATA.dim_names;
+  const vals = dims.map(d => DATA.dim_stats[d].mean);
+
+  mkChart('copsoq-radar', {
+    type: 'radar',
+    data: {
+      labels: dims.map(d => d.length>16 ? d.slice(0,16)+'…' : d),
+      datasets: [{
+        label: 'Score de Risco', data: vals,
+        backgroundColor: 'rgba(79,127,255,.15)',
+        borderColor: '#4f7fff',
+        pointBackgroundColor: vals.map(v=>scoreColor(v)),
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false} },
+      scales: {
+        r: {
+          min:0, max:5,
+          ticks: { color:'#9198b8', font:{size:9}, backdropColor:'transparent', stepSize:1 },
+          grid: { color:'rgba(42,47,69,.6)' },
+          pointLabels: { color:'#9198b8', font:{family:'DM Sans',size:10} }
+        }
+      }
+    }
+  });
+
+  const tbl = document.getElementById('copsoq-table');
+  tbl.innerHTML = `<thead><tr><th>Dimensão</th><th>Score</th><th>Mín</th><th>P25</th><th>P75</th><th>Máx</th><th>Nível</th></tr></thead><tbody>${
+    sortedDims.map(([dim,s]) => `<tr>
+      <td>${dim}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:600;color:${scoreColor(s.mean)}">${s.mean.toFixed(2)}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--text3)">${s.min.toFixed(2)}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--text2)">${s.p25.toFixed(2)}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--text2)">${s.p75.toFixed(2)}</td>
+      <td style="font-family:'DM Mono',monospace;color:var(--text3)">${s.max.toFixed(2)}</td>
+      <td>${badge(s.level)}</td>
+    </tr>`).join('')
+  }</tbody>`;
+
+  // Detail bars
+  const container = document.getElementById('dim-bars-detail');
+  container.innerHTML = sortedDims.map(([dim,s]) => {
+    const col = scoreColor(s.mean);
+    const pct = (s.mean/5)*100;
+    const p25pct = (s.p25/5)*100;
+    const p75pct = (s.p75/5)*100;
+    return `<div style="display:flex;align-items:center;gap:12px;margin-bottom:9px;">
+      <div style="width:200px;font-size:11.5px;color:var(--text2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dim}</div>
+      <div style="flex:1;position:relative;height:8px;background:var(--bg4);border-radius:4px;">
+        <div style="position:absolute;left:${p25pct}%;width:${p75pct-p25pct}%;height:100%;background:${col}33;border-radius:4px;"></div>
+        <div style="position:absolute;left:0;width:${pct}%;height:100%;background:${col};border-radius:4px;"></div>
+      </div>
+      <span style="font-family:'DM Mono',monospace;font-size:11px;color:${col};width:32px">${s.mean.toFixed(2)}</span>
+      ${badge(s.level)}
+    </div>`;
+  }).join('');
+}
+
+// ── HEATMAP ───────────────────────────────────────────────────────────────────
+function renderHeatmap() {
+  const secs = DATA.sectors;
+  const dims = sortedDims.map(([d])=>d);
+  const tbl = document.getElementById('heatmap-table');
+  const tooltip = document.getElementById('hm-tooltip');
+
+  let html = '<thead><tr><th style="text-align:left;padding:6px 10px;">Dimensão</th>';
+  secs.forEach(s => { html += `<th class="sector-th">${s}</th>`; });
+  html += '<th style="color:var(--accent2)">Média</th></tr></thead><tbody>';
+
+  dims.forEach(dim => {
+    const ds = DATA.dim_stats[dim];
+    html += `<tr><td class="dim-name">${dim}</td>`;
+    let rowVals = [];
+    secs.forEach(sec => {
+      const secData = DATA.sector_data[sec];
+      const v = secData ? secData.dims[dim] : null;
+      if (v !== null && v !== undefined) {
+        rowVals.push(v);
+        const col = scoreColor(v);
+        const bg = col + '28';
+        html += `<td style="background:${bg};color:${col};" 
+          onmouseenter="showHMTooltip(event,'${sec}','${dim}',${v})"
+          onmouseleave="hideHMTooltip()">${v.toFixed(2)}</td>`;
+      } else {
+        html += `<td style="color:var(--text3)">—</td>`;
+      }
+    });
+    const rowAvg = rowVals.length ? rowVals.reduce((a,b)=>a+b,0)/rowVals.length : 0;
+    const col = scoreColor(rowAvg);
+    html += `<td style="background:${col}22;color:${col};font-weight:600;">${rowAvg.toFixed(2)}</td></tr>`;
+  });
+  html += '</tbody>';
+  tbl.innerHTML = html;
+}
+function showHMTooltip(e, sec, dim, v) {
+  const t = document.getElementById('hm-tooltip');
+  t.innerHTML = `<strong style="color:var(--text)">${sec}</strong><br><span style="color:var(--text2)">${dim}</span><br><span style="color:${scoreColor(v)};font-family:'DM Mono',monospace;font-size:14px;font-weight:600">${v.toFixed(2)}</span> <span style="color:var(--text3);font-size:11px">· ${scoreLevel(v)}</span>`;
+  t.style.display = 'block';
+  t.style.left = (e.clientX+12)+'px';
+  t.style.top  = (e.clientY-10)+'px';
+}
+function hideHMTooltip() { document.getElementById('hm-tooltip').style.display='none'; }
+
+// ── SETORES ───────────────────────────────────────────────────────────────────
+let sectorDetailChart = null;
+function renderSetores() {
+  const secs = DATA.sectors;
+  const avgs = secs.map(s => DATA.sector_data[s].avg);
+  const cols = avgs.map(v=>scoreColor(v)+'cc');
+
+  mkChart('sector-chart', {
+    type: 'bar',
+    data: {
+      labels: secs.map(s=>s.length>10?s.slice(0,10)+'…':s),
+      datasets:[{label:'Risco Médio',data:avgs,backgroundColor:cols,borderRadius:4}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw.toFixed(2)} · ${scoreLevel(ctx.raw)}`}}},
+      scales:{
+        x:{ticks:{color:'#9198b8',font:{family:'DM Sans',size:10},maxRotation:45},grid:{display:false}},
+        y:{min:0,max:5,ticks:{color:'#9198b8',font:{family:'DM Sans',size:11}},grid:{color:'rgba(42,47,69,.5)'}}
+      }
+    }
+  });
+
+  // Burnout grouped bar
+  const bs = DATA.burnout_by_sector;
+  mkChart('burnout-chart', {
+    type: 'bar',
+    data: {
+      labels: secs.map(s=>s.length>8?s.slice(0,8)+'…':s),
+      datasets:[
+        {label:'Burnout/Exaustão',data:secs.map(s=>bs[s].burnout),backgroundColor:'#ef444499',borderRadius:3},
+        {label:'Estresse',data:secs.map(s=>bs[s].stress),backgroundColor:'#f9731699',borderRadius:3},
+        {label:'Conflito Família',data:secs.map(s=>bs[s].conflito),backgroundColor:'#f59e0b99',borderRadius:3},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#9198b8',font:{family:'DM Sans',size:11}}}},
+      scales:{
+        x:{ticks:{color:'#9198b8',font:{family:'DM Sans',size:10},maxRotation:45},grid:{display:false}},
+        y:{min:0,max:5,ticks:{color:'#9198b8',font:{family:'DM Sans',size:11}},grid:{color:'rgba(42,47,69,.5)'}}
+      }
+    }
+  });
+
+  // Table
+  const sorted = secs.map(s=>({s,d:DATA.sector_data[s]})).sort((a,b)=>b.d.avg-a.d.avg);
+  const tbl = document.getElementById('sector-table');
+  tbl.innerHTML = `<thead><tr><th>Setor</th><th>Respondentes</th><th>Risco Médio</th><th>Nível</th><th>Ação</th></tr></thead><tbody>${
+    sorted.map(({s,d}) => `<tr style="cursor:pointer" onclick="showSectorDetail('${s}')">
+      <td>${s}</td>
+      <td style="font-family:'DM Mono',monospace">${d.n}</td>
+      <td>${scoreBar(d.avg)}</td>
+      <td>${badge(d.level)}</td>
+      <td style="font-size:11px;color:var(--accent2)">🔍 Ver perfil</td>
+    </tr>`).join('')
+  }</tbody>`;
+}
+
+function showSectorDetail(sec) {
+  const d = DATA.sector_data[sec];
+  document.getElementById('sector-detail-panel').style.display = 'block';
+  document.getElementById('sector-detail-name').textContent = sec;
+  const dims = DATA.dim_names;
+  const vals = dims.map(dim => d.dims[dim]);
+  destroyChart('sector-detail-chart');
+  charts['sector-detail-chart'] = new Chart(document.getElementById('sector-detail-chart'), {
+    type:'bar',
+    data:{
+      labels: dims.map(d=>d.length>20?d.slice(0,20)+'…':d),
+      datasets:[{label:`Risco · ${sec}`,data:vals,backgroundColor:vals.map(v=>scoreColor(v)+'cc'),borderRadius:4}]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{min:0,max:5,ticks:{color:'#9198b8',font:{family:'DM Sans',size:11}},grid:{color:'rgba(42,47,69,.5)'}},
+        y:{ticks:{color:'#9198b8',font:{family:'DM Sans',size:11}},grid:{display:false}}
+      }
+    }
+  });
+  document.getElementById('sector-detail-panel').scrollIntoView({behavior:'smooth'});
+}
+
+// ── FUNÇÕES ───────────────────────────────────────────────────────────────────
+function renderFuncoes() {
+  const funcs = Object.entries(DATA.func_data).sort((a,b)=>b[1].avg-a[1].avg).slice(0,15);
+  const labels = funcs.map(([f])=>f.length>20?f.slice(0,20)+'…':f);
+  const vals = funcs.map(([,d])=>d.avg);
+
+  mkChart('func-chart', {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[{label:'Risco Médio',data:vals,backgroundColor:vals.map(v=>scoreColor(v)+'cc'),borderRadius:4}]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{min:0,max:5,ticks:{color:'#9198b8',font:{family:'DM Sans',size:11}},grid:{color:'rgba(42,47,69,.5)'}},
+        y:{ticks:{color:'#9198b8',font:{family:'DM Sans',size:11}},grid:{display:false}}
+      }
+    }
+  });
+
+  const allFuncs = Object.entries(DATA.func_data).sort((a,b)=>b[1].avg-a[1].avg);
+  const tbl = document.getElementById('func-table');
+  tbl.innerHTML = `<thead><tr><th>#</th><th>Função</th><th>N</th><th>Risco Médio</th><th>Nível</th></tr></thead><tbody>${
+    allFuncs.map(([f,d],i)=>`<tr>
+      <td style="color:var(--text3);font-family:'DM Mono',monospace">${i+1}</td>
+      <td>${f}</td>
+      <td style="font-family:'DM Mono',monospace">${d.n}</td>
+      <td>${scoreBar(d.avg)}</td>
+      <td>${badge(d.level)}</td>
+    </tr>`).join('')
+  }</tbody>`;
+}
+
+// ── PLANO ─────────────────────────────────────────────────────────────────────
+const ACTION_PLAN = [
+  {dim:'Ritmo de Trabalho',level:'Alto',pri:'🟠 ALTA',acao:'Revisão de processos e automação de rotinas; metas revistas com equipes; pausas regulamentadas',resp:'Gestores + Engenharia',prazo:'60 dias'},
+  {dim:'Exigências Emocionais',level:'Alto',pri:'🟠 ALTA',acao:'Capacitação em gestão emocional; supervisão de casos difíceis; programa de acolhimento',resp:'RH + Psicologia',prazo:'45 dias'},
+  {dim:'Insegurança no Trabalho',level:'Alto',pri:'🟠 ALTA',acao:'Comunicação transparente sobre futuro; planos de carreira estruturados; pesquisa de clima',resp:'Diretoria + RH',prazo:'45 dias'},
+  {dim:'Saúde Geral',level:'Alto',pri:'🟠 ALTA',acao:'PCMSO revisado; campanhas de saúde; ginástica laboral; monitoramento médico periódico',resp:'Medicina do Trabalho',prazo:'30 dias'},
+  {dim:'Exigências Quantitativas',level:'Médio',pri:'🟡 MÉDIA',acao:'Dimensionamento de equipe; redistribuição de tarefas; ferramentas de gestão de demanda',resp:'Gestores de Setor',prazo:'60 dias'},
+  {dim:'Conflito Trabalho-Família',level:'Médio',pri:'🟡 MÉDIA',acao:'Revisão de jornadas; política de flexibilidade; direito à desconexão digital',resp:'RH + Diretoria',prazo:'60 dias'},
+  {dim:'Burnout / Exaustão',level:'Médio',pri:'🟡 MÉDIA',acao:'Programa de bem-estar; avaliação médica ocupacional; rodízio de funções críticas',resp:'Medicina do Trabalho + RH',prazo:'30 dias'},
+  {dim:'Reconhecimento',level:'Médio',pri:'🟡 MÉDIA',acao:'Programa estruturado de reconhecimento; feedback positivo regular; premiações',resp:'Gestores + RH',prazo:'30 dias'},
+  {dim:'Distribuição do Trabalho',level:'Médio',pri:'🟡 MÉDIA',acao:'Revisão de cargos e responsabilidades; equidade de tarefas entre pares',resp:'Gestores',prazo:'60 dias'},
+  {dim:'Comunicação/Transparência',level:'Médio',pri:'🟡 MÉDIA',acao:'Reuniões regulares de alinhamento; comunicados internos estruturados; murais informativos',resp:'Diretoria + Comunicação',prazo:'30 dias'},
+  {dim:'Satisfação no Trabalho',level:'Médio',pri:'🟡 MÉDIA',acao:'Pesquisa de clima aprofundada; revisão de benefícios; plano de carreira claro',resp:'RH',prazo:'90 dias'},
+  {dim:'Influência no Trabalho',level:'Médio',pri:'🟡 MÉDIA',acao:'Ampliação de autonomia; participação em decisões; projetos transversais',resp:'Gestores + Diretoria',prazo:'90 dias'},
+  {dim:'Qualidade da Liderança',level:'Médio',pri:'🟡 MÉDIA',acao:'Programa de desenvolvimento de líderes; feedback 360°; coaching executivo',resp:'RH + Diretoria',prazo:'60 dias'},
+  {dim:'Estresse / Irritabilidade',level:'Médio',pri:'🟡 MÉDIA',acao:'Gestão de demandas; suporte psicológico; treinamentos de resiliência',resp:'Gestores + RH',prazo:'30 dias'},
+  {dim:'Possib. Desenvolvimento',level:'Baixo',pri:'🟢 BAIXA',acao:'PDI individualizado; treinamentos técnicos; plano de sucessão',resp:'RH + Gestores',prazo:'90 dias'},
+  {dim:'Apoio do Líder',level:'Baixo',pri:'🟢 BAIXA',acao:'Treinamento de líderes; reuniões 1:1; canais de suporte acessíveis',resp:'RH + Gestores',prazo:'30 dias'},
+  {dim:'Sentido do Trabalho',level:'Baixo',pri:'🟢 BAIXA',acao:'Comunicação de propósito e valores; alinhamento estratégico com equipes',resp:'Diretoria + RH',prazo:'90 dias'},
+  {dim:'Ambiente entre Colegas',level:'Baixo',pri:'🟢 BAIXA',acao:'Dinâmicas de integração; resolução de conflitos; cultura colaborativa',resp:'RH',prazo:'90 dias'},
+  {dim:'Autoeficácia',level:'Baixo',pri:'🟢 BAIXA',acao:'Capacitação contínua; metas alcançáveis; feedbacks de progresso frequentes',resp:'Gestores + RH',prazo:'60 dias'},
+  {dim:'Violência / Assédio',level:'Baixo',pri:'🟢 BAIXA',acao:'Canal de denúncia anônimo; política de tolerância zero; treinamentos periódicos',resp:'Jurídico + RH + Compliance',prazo:'15 dias'},
+];
+
+function renderPlano() {
+  const highRisk = ACTION_PLAN.filter(a => a.level === 'Alto' || a.level === 'Crítico');
+  const priColors = { '🔴 URGENTE':'#ef4444','🟠 ALTA':'#f97316','🟡 MÉDIA':'#f59e0b','🟢 BAIXA':'#22c55e' };
+
+  document.getElementById('action-alerts').innerHTML = highRisk.map(a => `
+    <div class="alert-card alto">
+      <div class="alert-icon">⚠️</div>
+      <div class="alert-content">
+        <div class="alert-title">${a.dim}</div>
+        <div class="alert-desc">${a.acao}</div>
+        <div class="alert-meta">
+          <span class="alert-chip">👤 ${a.resp}</span>
+          <span class="alert-chip">⏱ ${a.prazo}</span>
+          <span class="alert-chip" style="color:${scoreColor(DATA.dim_stats[a.dim]?.mean||3)}">Score: ${DATA.dim_stats[a.dim]?.mean?.toFixed(2)||'—'}</span>
+        </div>
+      </div>
+    </div>`).join('');
+
+  const tbl = document.getElementById('action-table');
+  tbl.innerHTML = `<thead><tr><th>#</th><th>Dimensão COPSOQ</th><th>Intervenção</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th></tr></thead><tbody>${
+    ACTION_PLAN.map((a,i) => {
+      const col = priColors[a.pri] || '#9198b8';
+      return `<tr>
+        <td style="color:var(--text3);font-family:'DM Mono',monospace">${i+1}</td>
+        <td style="font-weight:500">${a.dim}</td>
+        <td style="font-size:12px;color:var(--text2);max-width:300px">${a.acao}</td>
+        <td style="font-size:12px;color:var(--text2)">${a.resp}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:11px">${a.prazo}</td>
+        <td><span style="color:${col};font-size:12px;font-weight:600">${a.pri}</span></td>
+      </tr>`;
+    }).join('')
+  }</tbody>`;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderOverview();
+</script>
+</body>
+</html>
